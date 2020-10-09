@@ -15,7 +15,7 @@ class HttpServer {
 
     private:
         void handle_clients();
-        std::vector<std::thread> workers();
-        std::string address;
-        std::string port;
+        std::vector<std::thread> workers;
+        std::string _address;
+        std::string _port;
 };
