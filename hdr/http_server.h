@@ -1,6 +1,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "hdr/thread_safe_socket_queue.h"
 
 class HttpServer {
     public:
@@ -16,6 +17,7 @@ class HttpServer {
     private:
         void handle_clients();
         std::vector<std::thread> workers;
+        ThreadSafeSocketQueue socket_queue;
         std::string _address;
         std::string _port;
 };

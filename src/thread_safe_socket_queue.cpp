@@ -2,9 +2,9 @@
 
 using namespace std;
 
-void ThreadSafeSocketQueue::push(int socket_fd) {
+void ThreadSafeSocketQueue::push(int socket) {
     unique_lock<mutex> lock { mut };
-    sockets.push(socket_fd);
+    sockets.push(socket);
     socket_available.notify_one();
 }
 
