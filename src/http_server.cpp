@@ -64,8 +64,7 @@ void handle_client(int socket) {
         perror("Receive client socket data error");
     }
 
-    // todo get from buffer
-    auto reauest = "";
+    auto reauest = extract_request_path(std::string(buf));;
 
     if (reauest.empty()) {
         send_response(client_socket, RESPONSE_404, sizeof(RESPONSE_404));
@@ -140,6 +139,23 @@ bool send_response(int client_socket, const char *data, size_t length) {
         return false;
     }
     return true;
+}
+
+string extract_request_path(string&& buf) {
+    auto newline = buf.find_first_of("\r\n");
+    if (newline != string::npos) {
+        buf = buf.substr(0, newline);
+    }
+    auto space = buf.find(" ");
+    buf = buf.substr(space + 1);
+    space = buf.find(" ");
+    buf = buf.substr(0, space);
+
+    auto question = buf.find("?");
+    if (question != string::npos) {
+        buf = buf.substr(0, question);
+    }
+    return buf;
 }
 
 // todo move in own file

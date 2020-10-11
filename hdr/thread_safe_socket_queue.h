@@ -3,13 +3,13 @@
 #include <queue>
 
 class ThreadSafeSocketQueue {
-public:
-    ThreadSafeSocketQueue();
-    void push(int socket_fd);
-    int wait_and_pop();
+    public:
+        ThreadSafeSocketQueue();
+        void push(int socket_fd);
+        int wait_and_pop();
 
-private:
-    std::mutex mut;
-    std::queue<int> sockets;
-    std::condition_variable socket_available;
+    private:
+        std::mutex mut;
+        std::queue<int> sockets;
+        std::condition_variable socket_available;
 };
