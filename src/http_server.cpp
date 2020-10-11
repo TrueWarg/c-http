@@ -1,6 +1,9 @@
 #include "hdr/http_server.h"
 #include <iostream>
-// #include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -58,5 +61,44 @@ void handle_client(int socket) {
 }
 
 int bind_and_listen(const char* port) {
-    // todo implement
+    auto server_socket = 0;
+    auto servinfo = create_servinfo(port);
+    for (auto p = servinfo; p != nullptr; p = p->ai_next) {
+        if ((server_socket = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+            perror("Server socket creation error");
+            continue;
+        }
+
+        if (bind(server_socket, p->ai_addr, p->ai_addrlen) == -1) {
+            close(server_socket);
+            perror("Bind server socket error");
+            continue;
+        }
+    }
+    
+    freeaddrinfo(servinfo);
+
+    if (listen(server_socket, 10) == -1) {
+        perror("Error server socket listening");
+        return -1;
+    }
+
+    return server_socket
+}
+
+addrinfo* create_servinfo(const char* port)
+{
+    struct addrinfo hints = {};
+
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    struct addrinfo* servinfo;
+
+    if (getaddrinfo(nullptr, port, &hints, &servinfo) != 0) {
+        perror("Error while getting addrinfo");
+        return nullptr;
+    }
+    return servinfo;
 }
