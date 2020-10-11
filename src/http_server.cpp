@@ -57,7 +57,38 @@ void HttpServer::run() {
 }
 
 void handle_client(int socket) {
-    // todo implement
+    const int buffer_size = 4096;
+    char buffer[buffer_size];
+
+    if (recv(socket, buf, buffer_size, 0) == -1) {
+        perror("Receive client socket data error");
+    }
+
+    // todo get from buffer
+    auto reauest = "";
+
+    if (reauest.empty()) {
+        send_response(client_socket, RESPONSE_404, sizeof(RESPONSE_404));
+    } else {
+        handle_request(reauest);
+    }
+
+    close(client_socket);
+}
+
+void handle_request(const string& request) {
+    auto fd = open(request.c_str(), O_RDONLY);
+    if (fd == - 1) {
+        send_response(client_socket, RESPONSE_404, sizeof(RESPONSE_404));
+    } else {
+        int enable = 1;
+        // todo add simple error handling 
+        setsockopt(client_socket, IPPROTO_TCP, TCP_CORK, &enable, sizeof(int))
+        send_response(client_socket, RESPONSE_200, sizeof(RESPONSE_200));  
+        enable = 0;
+        setsockopt(client_socket, IPPROTO_TCP, TCP_CORK, &enable, sizeof(int));      
+    }
+    close(fd);
 }
 
 int bind_and_listen(const char* port) {
@@ -102,3 +133,18 @@ addrinfo* create_servinfo(const char* port)
     }
     return servinfo;
 }
+
+bool send_response(int client_socket, const char *data, size_t length) {
+    if (send(client_socket, data, length, 0) == -1) {
+        perror("Send response error");
+        return false;
+    }
+    return true;
+}
+
+// todo move in own file
+const char RESPONSE_404[] = "HTTP/1.0 404 Not Found\r\n"
+                        "Content-Type: text/html\r\n\r\n";
+
+const char RESPONSE_200[] = "HTTP/1.0 200 OK\r\n"
+                               "Content-Type: text/html\r\n\r\n";
