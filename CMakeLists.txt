@@ -22,12 +22,12 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++98-compat-pedantic")
 endif()
 
-find_package(Boost 1.71 COMPONENTS program_options REQUIRED)
+find_package(Boost 1.54 COMPONENTS program_options REQUIRED)
 add_executable(final
     src/main.cpp
-    hdr/http_server.h
+    src/http_server.h
     src/http_server.cpp
-    hdr/thread_safe_socket_queue.h
+    src/thread_safe_socket_queue.h
     src/thread_safe_socket_queue.cpp)
 
 target_link_libraries(final
