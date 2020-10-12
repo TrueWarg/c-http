@@ -4,6 +4,8 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <linux/tcp.h>
 
 using namespace std;
 
@@ -60,32 +62,32 @@ void handle_client(int socket) {
     const int buffer_size = 4096;
     char buffer[buffer_size];
 
-    if (recv(socket, buf, buffer_size, 0) == -1) {
+    if (recv(socket, buffer, buffer_size, 0) == -1) {
         perror("Receive client socket data error");
     }
 
-    auto reauest = extract_request_path(std::string(buf));;
+    auto reauest = extract_request_path(std::string(buffer));;
 
     if (reauest.empty()) {
-        send_response(client_socket, RESPONSE_404, sizeof(RESPONSE_404));
+        send_response(socket, RESPONSE_404, sizeof(RESPONSE_404));
     } else {
-        handle_request(reauest);
+        handle_request(reauest, socket);
     }
 
-    close(client_socket);
+    close(socket);
 }
 
-void handle_request(const string& request) {
+void handle_request(const string& request, const int& socket) {
     auto fd = open(request.c_str(), O_RDONLY);
     if (fd == - 1) {
-        send_response(client_socket, RESPONSE_404, sizeof(RESPONSE_404));
+        send_response(socket, RESPONSE_404, sizeof(RESPONSE_404));
     } else {
         int enable = 1;
         // todo add simple error handling 
-        setsockopt(client_socket, IPPROTO_TCP, TCP_CORK, &enable, sizeof(int))
-        send_response(client_socket, RESPONSE_200, sizeof(RESPONSE_200));  
+        setsockopt(socket, IPPROTO_TCP, TCP_CORK, &enable, sizeof(int));
+        send_response(socket, RESPONSE_200, sizeof(RESPONSE_200));  
         enable = 0;
-        setsockopt(client_socket, IPPROTO_TCP, TCP_CORK, &enable, sizeof(int));      
+        setsockopt(socket, IPPROTO_TCP, TCP_CORK, &enable, sizeof(int));      
     }
     close(fd);
 }
@@ -113,7 +115,7 @@ int bind_and_listen(const char* port) {
         return -1;
     }
 
-    return server_socket
+    return server_socket;
 }
 
 addrinfo* create_servinfo(const char* port)
